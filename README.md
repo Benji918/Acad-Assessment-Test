@@ -1,5 +1,7 @@
 # Acad AI Backend Test
 
+<img src="C:/Users/benja/Desktop/assessment_engine/assets/img/Exam Submission and Grading-2026-01-01-013337.png" title="ERD project diagram"/>
+
 A robust Django REST Framework application for managing academic assessments with automated grading.
 
 ## Features
