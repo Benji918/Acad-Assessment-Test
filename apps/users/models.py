@@ -32,7 +32,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         ('admin', 'Admin'),
     )
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
     email = models.EmailField(_('email address'), unique=True, db_index=True)
     username = models.CharField(max_length=150, unique=True, db_index=True)
     first_name = models.CharField(max_length=150)
