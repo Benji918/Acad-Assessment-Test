@@ -163,7 +163,7 @@ REST_FRAMEWORK = {
         'anon': '100/hour',
         'user': '1000/hour'
     },
-    # 'EXCEPTION_HANDLER': 'core.exceptions.custom_exception_handler',
+    'EXCEPTION_HANDLER': 'core.exceptions.custom_exception_handler',
 }
 
 # JWT Configuration
