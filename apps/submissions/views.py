@@ -100,7 +100,6 @@ class SubmissionViewSet(viewsets.ModelViewSet):
             submitted_at=timezone.now(),
             total_marks=exam.total_marks
         )
-        # print(answers_data)
 
         answer_objs = []
         question_ids = [item['question_id'] for item in answers_data]
@@ -120,7 +119,7 @@ class SubmissionViewSet(viewsets.ModelViewSet):
                 submission=submission,
                 question=q,
                 answer_text=item['answer_text'],
-                marks_allocated=q.marks,  # initial allocated marks (before grading)
+                marks_allocated=q.marks,
             )
             answer_objs.append(ans)
 
@@ -134,20 +133,26 @@ class SubmissionViewSet(viewsets.ModelViewSet):
         try:
             grading_service = GradingServiceFactory.get_service()
             grading_result = grading_service.grade_submission(submission)
-            AI_grading = GradingServiceFactory.get_analysis_service()
+            ai_grading = GradingServiceFactory.get_analysis_service()
             submission.status = 'graded'
             submission.is_graded = True
             submission.graded_at = timezone.now()
-            submission.grade = grading_result.get('total_score')
-            submission.save(update_fields=['status', 'is_graded', 'graded_at', 'grade'])
+            # submission.grade = grading_result.get('total_score')
+            submission.save(update_fields=['status', 'is_graded', 'graded_at'])
+
         except Exception as e:
 
             print(f"Grading error: {e}")
 
 
         resp = SubmissionSerializer(submission, context={'request': request}).data
-        return Response({'success': True, 'message': 'Exam submitted successfully', 'data': resp},
-                        status=status.HTTP_201_CREATED)
+        return Response({'success': True,
+                         'message': 'Exam submitted successfully',
+                         'data': resp,
+                         'AI_analysis': ai_grading.analyze_submission(submission)
+                         },
+                        status=status.HTTP_201_CREATED
+                        )
 
     @action(detail=True, methods=['get'])
     def results(self, request, pk=None):
@@ -162,14 +167,14 @@ class SubmissionViewSet(viewsets.ModelViewSet):
             )
 
         # Get grading result if available
-        grading_result = None
-        if hasattr(submission, 'grading_result'):
-            grading_result = GradingResultSerializer(submission.grading_result).data
+        # grading_result = None
+        # if hasattr(submission, 'grading_result'):
+        #     grading_result = GradingResultSerializer(submission.grading_result).data
 
         return Response({
             'success': True,
             'data': {
                 'submission': SubmissionSerializer(submission).data,
-                'grading_result': grading_result
+                # 'grading_result': grading_result
             }
         })

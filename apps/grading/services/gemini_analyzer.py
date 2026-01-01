@@ -1,11 +1,11 @@
 import os
-from typing import Dict, Any
+from typing import Dict, Any, List
 from decimal import Decimal
 from django.conf import settings
 from .base import BaseGradingService
 
 try:
-    import google.generativeai as genai
+    from google import genai
     GEMINI_AVAILABLE = True
 except ImportError:
     GEMINI_AVAILABLE = False
@@ -24,8 +24,7 @@ class GeminiAnalysisService(BaseGradingService):
         if not api_key:
             raise ValueError("GEMINI_API_KEY is not configured")
 
-        genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel('gemini-pro')
+        self.client = genai.Client(api_key=api_key)
 
     def grade_submission(self, submission) -> Dict[str, Any]:
         '''
@@ -60,7 +59,8 @@ class GeminiAnalysisService(BaseGradingService):
         prompt = self._create_analysis_prompt(submission_context)
 
         try:
-            response = self.model.generate_content(prompt)
+            response = self.client.models.generate_content(
+            model="gemini-2.0-flash", contents=prompt)
             analysis_text = response.text
 
             return {
