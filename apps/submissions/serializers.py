@@ -20,31 +20,22 @@ class AnswerSerializer(serializers.ModelSerializer):
         # Sanitize input to prevent XSS
         return sanitize_html_input(value)
 
-class SubmissionCreateSerializer(serializers.Serializer):
-    '''Serializer for creating submissions with answers.'''
+class AnswerItemSerializer(serializers.Serializer):
+    question_id = serializers.IntegerField()
+    answer_text = serializers.CharField()
 
-    exam = serializers.UUIDField()
-    answers = serializers.ListField(
-        child=serializers.DictField(
-            child=serializers.CharField()
-        )
-    )
+    def validate_answer_text(self, value):
+        validate_answer_length(value)
+        return sanitize_html_input(value)
+
+
+class SubmissionCreateSerializer(serializers.Serializer):
+    exam = serializers.IntegerField()
+    answers = serializers.ListField(child=AnswerItemSerializer())
 
     def validate_answers(self, value):
         if not value:
             raise serializers.ValidationError("At least one answer is required.")
-
-        for answer in value:
-            if 'question' not in answer or 'answer_text' not in answer:
-                raise serializers.ValidationError(
-                    "Each answer must have 'question' and 'answer_text' fields."
-                )
-
-            # Validate and sanitize each answer
-            answer_text = answer['answer_text']
-            validate_answer_length(answer_text)
-            answer['answer_text'] = sanitize_html_input(answer_text)
-
         return value
 
 class SubmissionSerializer(serializers.ModelSerializer):

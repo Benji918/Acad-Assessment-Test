@@ -92,7 +92,7 @@ class SubmissionViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Create submission
+
         submission = Submission.objects.create(
             student=request.user,
             exam=exam,
@@ -100,69 +100,76 @@ class SubmissionViewSet(viewsets.ModelViewSet):
             submitted_at=timezone.now(),
             total_marks=exam.total_marks
         )
+        # print(answers_data)
 
-        # Create answers
-        for answer_data in answers_data:
-            try:
-                question = Question.objects.get(
-                    id=answer_data['question'],
-                    exam=exam
-                )
-            except Question.DoesNotExist:
-                transaction.set_rollback(True)
-                return Response(
-                    {'success': False, 'message': f"Invalid question ID: {answer_data['question']}"},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+        answer_objs = []
+        question_ids = [item['question_id'] for item in answers_data]
 
-            Answer.objects.create(
+        questions_qs = Question.objects.filter(exam=exam, id__in=question_ids).in_bulk()
+
+        missing_ids = [qid for qid in question_ids if qid not in questions_qs]
+        if missing_ids:
+            # atomic decorator will roll back automatically
+            return Response({'success': False,
+                             'message': f'Invalid question IDs: {missing_ids}'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        for item in answers_data:
+            q = questions_qs[item['question_id']]
+            ans = Answer(
                 submission=submission,
-                question=question,
-                answer_text=answer_data['answer_text'],
-                marks_allocated=question.marks
+                question=q,
+                answer_text=item['answer_text'],
+                marks_allocated=q.marks,  # initial allocated marks (before grading)
+            )
+            answer_objs.append(ans)
+
+        Answer.objects.bulk_create(answer_objs)
+
+        # Refresh answers if grading service needs them via ORM
+        # submission.refresh_from_db()
+        submission_answers = submission.answers.select_related('question').all()
+
+
+        try:
+            grading_service = GradingServiceFactory.get_service()
+            grading_result = grading_service.grade_submission(submission)
+            AI_grading = GradingServiceFactory.get_analysis_service()
+            submission.status = 'graded'
+            submission.is_graded = True
+            submission.graded_at = timezone.now()
+            submission.grade = grading_result.get('total_score')
+            submission.save(update_fields=['status', 'is_graded', 'graded_at', 'grade'])
+        except Exception as e:
+
+            print(f"Grading error: {e}")
+
+
+        resp = SubmissionSerializer(submission, context={'request': request}).data
+        return Response({'success': True, 'message': 'Exam submitted successfully', 'data': resp},
+                        status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['get'])
+    def results(self, request, pk=None):
+        '''Endpoint to retrieve submission results.'''
+
+        submission = self.get_object()
+
+        if not submission.is_graded:
+            return Response(
+                {'success': False, 'message': 'Submission is not yet graded'},
+                status=status.HTTP_400_BAD_REQUEST
             )
 
-            # Trigger automated grading
-            try:
-                grading_service = GradingServiceFactory.get_service()
-                grading_result = grading_service.grade_submission(submission)
+        # Get grading result if available
+        grading_result = None
+        if hasattr(submission, 'grading_result'):
+            grading_result = GradingResultSerializer(submission.grading_result).data
 
-                submission.status = 'graded'
-                submission.is_graded = True
-                submission.graded_at = timezone.now()
-                submission.save()
-
-            except Exception as e:
-                # Log error but don't fail the submission
-                print(f"Grading error: {str(e)}")
-
-            return Response({
-                'success': True,
-                'message': 'Exam submitted successfully',
-                'data': SubmissionSerializer(submission).data
-            }, status=status.HTTP_201_CREATED)
-
-        @action(detail=True, methods=['get'])
-        def results(self, request, pk=None):
-            '''Endpoint to retrieve submission results.'''
-
-            submission = self.get_object()
-
-            if not submission.is_graded:
-                return Response(
-                    {'success': False, 'message': 'Submission is not yet graded'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-            # Get grading result if available
-            grading_result = None
-            if hasattr(submission, 'grading_result'):
-                grading_result = GradingResultSerializer(submission.grading_result).data
-
-            return Response({
-                'success': True,
-                'data': {
-                    'submission': SubmissionSerializer(submission).data,
-                    'grading_result': grading_result
-                }
-            })
+        return Response({
+            'success': True,
+            'data': {
+                'submission': SubmissionSerializer(submission).data,
+                'grading_result': grading_result
+            }
+        })
