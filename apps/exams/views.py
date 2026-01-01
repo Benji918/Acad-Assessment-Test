@@ -28,6 +28,8 @@ class ExamViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             return [IsTeacher()]
+        if self.action == 'start':
+            return [IsStudent(), IsEnrolledInCourse()]
         return [IsAuthenticated()]
 
     def get_queryset(self):
