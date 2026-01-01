@@ -21,7 +21,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         if attrs['password'] != attrs['password2']:
             raise serializers.ValidationError({"password": "Password fields didn't match."})
-        if sanitize_email(attrs['email']):
+        if not sanitize_email(attrs['email']):
             raise serializers.ValidationError({'email': 'Email address is invalid. Please check the format'})
         return attrs
 

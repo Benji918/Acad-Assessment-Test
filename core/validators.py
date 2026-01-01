@@ -57,7 +57,7 @@ def sanitize_email(email):
         resolver = caching_resolver(timeout=10)
         v = validate_email(email, dns_resolver=resolver, check_deliverability=True)
     except EmailNotValidError as e:
-        raise serializers.ValidationError({"email": f"Invalid email domain: {e}"})
+        return False
 
 
     return True

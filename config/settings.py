@@ -207,9 +207,9 @@ SPECTACULAR_SETTINGS = {
     'TITLE': 'Mini Assessment Engine API',
     'DESCRIPTION': 'API for managing academic assessments with automated grading',
     'VERSION': '1.0.0',
-    'SERVE_INCLUDE_SCHEMA': True,
+    'SERVE_INCLUDE_SCHEMA': False,
     'COMPONENT_SPLIT_REQUEST': True,
-    'SCHEMA_PATH_PREFIX': r'/api/v[0-9]',  # Fixed regex
+    'SCHEMA_PATH_PREFIX': r'/api/v[0-9]',
     'SWAGGER_UI_SETTINGS': {
         'deepLinking': True,
         'persistAuthorization': True,
