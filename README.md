@@ -1,4 +1,4 @@
-# Mini Assessment Engine - Acad AI Backend Test
+# Acad AI Backend Test
 
 A robust Django REST Framework application for managing academic assessments with automated grading.
 
