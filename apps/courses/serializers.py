@@ -33,7 +33,14 @@ class EnrollmentSerializer(serializers.ModelSerializer):
         student = attrs.get('student')
         course = attrs.get('course')
 
-        if Enrollment.objects.filter(student=student, course=course).exists():
-            raise serializers.ValidationError("Student is already enrolled in this course.")
+        qs = Enrollment.objects.filter(student=student, course=course)
+
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.id)
+
+        if qs.exists():
+            raise serializers.ValidationError(
+                "Student is already enrolled in this course."
+            )
 
         return attrs

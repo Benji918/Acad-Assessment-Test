@@ -52,6 +52,11 @@ class EnrollmentViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
-        if self.request.user.role == 'student':
-            return Enrollment.objects.filter(student=self.request.user).select_related('course', 'student')
-        return Enrollment.objects.all().select_related('course', 'student')
+        user = self.request.user
+
+        qs = Enrollment.objects.select_related('course', 'student')
+
+        if user.is_staff or user.is_superuser:
+            return qs
+
+        return qs.filter(student=user).select_related('course', 'student')
