@@ -126,8 +126,7 @@ class SubmissionViewSet(viewsets.ModelViewSet):
 
         Answer.objects.bulk_create(answer_objs)
 
-        # Refresh answers if grading service needs them via ORM
-        # submission.refresh_from_db()
+
         submission_answers = submission.answers.select_related('question').all()
         ai_grading = None
 
@@ -138,7 +137,6 @@ class SubmissionViewSet(viewsets.ModelViewSet):
             submission.status = 'graded'
             submission.is_graded = True
             submission.graded_at = timezone.now()
-            # submission.grade = grading_result.get('total_score')
             submission.save(update_fields=['status', 'is_graded', 'graded_at'])
 
         except Exception as e:

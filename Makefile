@@ -13,6 +13,7 @@ makemigrations: ## Create new migrations
 freeze:
 	pip freeze > requirements.txt
 
+
 # Celery workers
 celery-worker: ## Start Celery worker
 	celery -A choppr worker -l info

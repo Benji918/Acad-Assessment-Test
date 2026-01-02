@@ -4,8 +4,8 @@ from .keyword_grader import SpacyGradingService
 
 
 def get_gemini_service():
-    from .gemini_analyzer import GeminiAnalysisService
-    return GeminiAnalysisService()
+    from .mistral_analyzer import MistralAnalysisService
+    return MistralAnalysisService()
 
 class GradingServiceFactory:
     '''

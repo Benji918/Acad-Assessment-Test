@@ -83,8 +83,8 @@ python manage.py runserver
 ## API Documentation
 
 Access the interactive API documentation:
-- Swagger UI: `http://localhost:8000/swagger/`
-- ReDoc: `http://localhost:8000/redoc/`
+- Swagger UI: `http://localhost:8000/api/docs`
+- ReDoc: `http://localhost:8000/api/redoc/`
 
 ## Key Endpoints
 
@@ -124,8 +124,8 @@ When enabled, Gemini AI provides:
 
 To enable:
 ```env
-ENABLE_GEMINI_GRADING=True
-GEMINI_API_KEY=your-api-key-here
+MISTRAL_API_KEY=your-api-key-here
+ENABLE_MISTRAL_GRADING=True
 ```
 
 ## Security Features
