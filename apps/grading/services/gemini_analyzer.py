@@ -5,6 +5,7 @@ from django.conf import settings
 from .base import BaseGradingService
 from mistralai import Mistral
 
+
 try:
     from google import genai
     MISTRAL_AVAILABLE = True
@@ -19,7 +20,7 @@ class GeminiAnalysisService(BaseGradingService):
 
     def __init__(self):
         if not MISTRAL_AVAILABLE:
-            raise ImportError("google-generativeai package is not installed")
+            raise ImportError("Package is not installed")
 
         self.model = "mistral-medium-latest"
         api_key = settings.MISTRAL_API_KEY
@@ -29,20 +30,20 @@ class GeminiAnalysisService(BaseGradingService):
         self.client = Mistral(api_key=api_key)
 
 
-    # def grade_submission(self, submission) -> Dict[str, Any]:
-    #     '''
-    #     This service doesn't grade directly but provides analysis.
-    #     Use KeywordGradingService for actual grading.
-    #     '''
-    #     raise NotImplementedError(
-    #         "Gemini service is for analysis only. Use KeywordGradingService for grading."
-    #     )
-    #
-    # def grade_answer(self, answer, question) -> Dict[str, Any]:
-    #     '''Not implemented for Gemini service.'''
-    #     raise NotImplementedError(
-    #         "Gemini service is for analysis only. Use KeywordGradingService for grading."
-    #     )
+    def grade_submission(self, submission) -> Dict[str, Any]:
+        '''
+        This service doesn't grade directly but provides analysis.
+        Use KeywordGradingService for actual grading.
+        '''
+        raise NotImplementedError(
+            "Gemini service is for analysis only. Use KeywordGradingService for grading."
+        )
+
+    def grade_answer(self, answer, question) -> Dict[str, Any]:
+        '''Not implemented for Gemini service.'''
+        raise NotImplementedError(
+            "Gemini service is for analysis only. Use KeywordGradingService for grading."
+        )
 
     def analyze_submission(self, submission) -> Dict[str, Any]:
         '''
@@ -69,13 +70,11 @@ class GeminiAnalysisService(BaseGradingService):
                     },
                 ]
             )
-            analysis_text = response.text
+
+            analysis_text = response.choices[0].message.content
+
 
             return {
-                'summary': self._extract_summary(analysis_text),
-                'strengths': self._extract_strengths(analysis_text),
-                'areas_for_improvement': self._extract_improvements(analysis_text),
-                'suggestions': self._extract_suggestions(analysis_text),
                 'full_analysis': analysis_text
             }
 
@@ -135,51 +134,9 @@ Please provide:
 3. AREAS FOR IMPROVEMENT: What needs work (3-4 points)
 4. SUGGESTIONS: Specific actionable recommendations (3-4 points)
 
-Keep the feedback encouraging, constructive, and specific. Focus on learning outcomes.
+Keep the feedback encouraging, constructive, and specific. Focus on learning outcomes. Give the response in text format only not MARKDOWN
+also do not make any of the texts bold using the *
 """
 
         return prompt
 
-    def _extract_summary(self, analysis: str) -> str:
-        '''Extract summary section from analysis.'''
-        return self._extract_section(analysis, 'SUMMARY')
-
-    def _extract_strengths(self, analysis: str) -> List[str]:
-        '''Extract strengths from analysis.'''
-        return self._extract_bullet_points(analysis, 'STRENGTHS')
-
-    def _extract_improvements(self, analysis: str) -> List[str]:
-        '''Extract areas for improvement.'''
-        return self._extract_bullet_points(analysis, 'AREAS FOR IMPROVEMENT')
-
-    def _extract_suggestions(self, analysis: str) -> List[str]:
-        '''Extract suggestions from analysis.'''
-        return self._extract_bullet_points(analysis, 'SUGGESTIONS')
-
-    def _extract_section(self, text: str, section_name: str) -> str:
-        '''Extract a specific section from formatted text.'''
-
-        import re
-        pattern = rf'{section_name}:(.*?)(?=\n\n|\d+\.|$)'
-        match = re.search(pattern, text, re.DOTALL | re.IGNORECASE)
-
-        if match:
-            return match.group(1).strip()
-
-        return "Analysis not available"
-
-    def _extract_bullet_points(self, text: str, section_name: str) -> List[str]:
-        '''Extract bullet points from a section.'''
-
-        import re
-        section_text = self._extract_section(text, section_name)
-
-        # Find numbered or bulleted items
-        points = re.findall(r'(?:[\d]+\.|[-•*])\s*(.+?)(?=(?:[\d]+\.|[-•*]|\n\n|$))',
-                            section_text, re.DOTALL)
-
-        if points:
-            return [p.strip() for p in points]
-
-        # If no bullets found, return the whole section as one item
-        return [section_text] if section_text else []

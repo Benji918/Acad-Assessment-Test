@@ -21,7 +21,7 @@ class GradingServiceFactory:
     @staticmethod
     def get_analysis_service():
         '''Get optional AI analysis service if enabled.'''
-        if getattr(settings, 'ENABLE_GEMINI_GRADING', False):
+        if getattr(settings, 'ENABLE_MISTRAL_GRADING', False):
             try:
                 return get_gemini_service()
             except (ImportError, ValueError) as e:

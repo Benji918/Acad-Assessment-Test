@@ -25,6 +25,7 @@ class SubmissionViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('exam', 'status', 'is_graded')
+    http_method_names = ['get', 'put', 'patch', 'post']
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -128,7 +129,7 @@ class SubmissionViewSet(viewsets.ModelViewSet):
         # Refresh answers if grading service needs them via ORM
         # submission.refresh_from_db()
         submission_answers = submission.answers.select_related('question').all()
-
+        ai_grading = None
 
         try:
             grading_service = GradingServiceFactory.get_service()
@@ -141,11 +142,13 @@ class SubmissionViewSet(viewsets.ModelViewSet):
             submission.save(update_fields=['status', 'is_graded', 'graded_at'])
 
         except Exception as e:
-
-            print(f"Grading error: {e}")
+            return {
+                'error': f"Grading error: {e}"
+            }
 
 
         resp = SubmissionSerializer(submission, context={'request': request}).data
+
         return Response({'success': True,
                          'message': 'Exam submitted successfully',
                          'data': resp,

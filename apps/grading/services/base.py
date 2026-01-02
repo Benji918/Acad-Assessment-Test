@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Dict, Any
 
 class BaseGradingService(ABC):
-    '''Abstract base class for grading services following Open/Closed Principle.'''
+    '''Abstract base class for grading services'''
 
     @abstractmethod
     def grade_submission(self, submission) -> Dict[str, Any]:

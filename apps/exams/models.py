@@ -67,4 +67,4 @@ class Question(models.Model):
         ]
 
     def __str__(self):
-        return f"Q{self.order} - {self.exam.title}"
+        return f"Q{self.id} - {self.exam.title}"
