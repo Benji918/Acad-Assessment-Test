@@ -8,7 +8,7 @@ class QuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
         fields = ('id', 'exam', 'question_type', 'question_text', 'expected_answer',
-                  'keywords', 'marks', 'order', 'metadata', 'created_at')
+                  'keywords', 'marks', 'metadata', 'created_at')
         read_only_fields = ('id', 'created_at')
 
     def validate_keywords(self, value):
@@ -21,7 +21,7 @@ class QuestionListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Question
-        fields = ('id', 'question_type', 'question_text', 'marks', 'order')
+        fields = ('id', 'question_type', 'question_text', 'marks',)
         read_only_fields = ('id',)
 
 class ExamSerializer(serializers.ModelSerializer):
