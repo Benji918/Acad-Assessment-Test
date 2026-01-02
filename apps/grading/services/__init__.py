@@ -1,6 +1,6 @@
 from django.conf import settings
 from .base import BaseGradingService
-from .keyword_grader import KeywordGradingService
+from .keyword_grader import SpacyGradingService
 
 
 def get_gemini_service():
@@ -16,7 +16,7 @@ class GradingServiceFactory:
     @staticmethod
     def get_service() -> BaseGradingService:
         '''Get the primary grading service (always KeywordGradingService).'''
-        return KeywordGradingService()
+        return SpacyGradingService()
 
     @staticmethod
     def get_analysis_service():

@@ -3,43 +3,46 @@ from typing import Dict, Any, List
 from decimal import Decimal
 from django.conf import settings
 from .base import BaseGradingService
+from mistralai import Mistral
 
 try:
     from google import genai
-    GEMINI_AVAILABLE = True
+    MISTRAL_AVAILABLE = True
 except ImportError:
-    GEMINI_AVAILABLE = False
+    MISTRAL_AVAILABLE = False
 
 class GeminiAnalysisService(BaseGradingService):
     '''
-    Optional Gemini AI service for advanced analysis and suggestions.
+    Optional Mistra AI service for advanced analysis and suggestions.
     This service enhances the grading with AI-powered insights.
     '''
 
     def __init__(self):
-        if not GEMINI_AVAILABLE:
+        if not MISTRAL_AVAILABLE:
             raise ImportError("google-generativeai package is not installed")
 
-        api_key = settings.GEMINI_API_KEY
+        self.model = "mistral-medium-latest"
+        api_key = settings.MISTRAL_API_KEY
         if not api_key:
-            raise ValueError("GEMINI_API_KEY is not configured")
+            raise ValueError("MISTRAL_API_KEY is not configured")
 
-        self.client = genai.Client(api_key=api_key)
+        self.client = Mistral(api_key=api_key)
 
-    def grade_submission(self, submission) -> Dict[str, Any]:
-        '''
-        This service doesn't grade directly but provides analysis.
-        Use KeywordGradingService for actual grading.
-        '''
-        raise NotImplementedError(
-            "Gemini service is for analysis only. Use KeywordGradingService for grading."
-        )
 
-    def grade_answer(self, answer, question) -> Dict[str, Any]:
-        '''Not implemented for Gemini service.'''
-        raise NotImplementedError(
-            "Gemini service is for analysis only. Use KeywordGradingService for grading."
-        )
+    # def grade_submission(self, submission) -> Dict[str, Any]:
+    #     '''
+    #     This service doesn't grade directly but provides analysis.
+    #     Use KeywordGradingService for actual grading.
+    #     '''
+    #     raise NotImplementedError(
+    #         "Gemini service is for analysis only. Use KeywordGradingService for grading."
+    #     )
+    #
+    # def grade_answer(self, answer, question) -> Dict[str, Any]:
+    #     '''Not implemented for Gemini service.'''
+    #     raise NotImplementedError(
+    #         "Gemini service is for analysis only. Use KeywordGradingService for grading."
+    #     )
 
     def analyze_submission(self, submission) -> Dict[str, Any]:
         '''
@@ -52,15 +55,20 @@ class GeminiAnalysisService(BaseGradingService):
                 'error': 'Submission must be graded first'
             }
 
-        # Prepare submission data for analysis
         submission_context = self._prepare_submission_context(submission)
 
-        # Generate AI analysis
         prompt = self._create_analysis_prompt(submission_context)
 
         try:
-            response = self.client.models.generate_content(
-            model="gemini-2.0-flash", contents=prompt)
+            response = self.client.chat.complete(
+                model = self.model,
+                messages = [
+                    {
+                        "role": "user",
+                        "content": prompt,
+                    },
+                ]
+            )
             analysis_text = response.text
 
             return {

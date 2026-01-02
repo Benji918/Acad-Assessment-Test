@@ -199,8 +199,8 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 
 # Grading Configuration
-GEMINI_API_KEY = config('GEMINI_API_KEY', default='')
-ENABLE_GEMINI_GRADING = config('ENABLE_GEMINI_GRADING', default=False, cast=bool)
+MISTRAL_API_KEY = config('MISTRAL_API_KEY', default='')
+ENABLE_MISTRAL_GRADING = config('ENABLE_MISTRAL_GRADING', default=False, cast=bool)
 
 # Spectacular settings
 SPECTACULAR_SETTINGS = {
