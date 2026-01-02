@@ -54,16 +54,15 @@ class Question(models.Model):
         help_text='List of keywords for grading'
     )
     marks = models.PositiveIntegerField(validators=[MinValueValidator(1)])
-    order = models.PositiveIntegerField(default=0)
     metadata = models.JSONField(default=dict, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = 'questions'
-        ordering = ['exam', 'order']
+        ordering = ['exam',]
         indexes = [
-            models.Index(fields=['exam', 'order']),
+            models.Index(fields=['exam',]),
         ]
 
     def __str__(self):
