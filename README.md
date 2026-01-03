@@ -107,7 +107,7 @@ Access the interactive API documentation:
 - `POST /api/v1/submissions/submit_exam/` - Submit exam answers
 - `GET /api/v1/submissions/{id}/results/` - View graded results
 
-## Grading System
+## Grading System(Using Spacy-NLP)
 
 ### Keyword-Based Grading
 The primary grading method uses:
