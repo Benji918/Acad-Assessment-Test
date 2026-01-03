@@ -116,7 +116,7 @@ The primary grading method uses:
 - Automatic feedback generation
 
 ### AI-Powered Analysis (Optional)
-When enabled, Gemini AI provides:
+When enabled, Mistral AI provides:
 - Performance summary
 - Strengths identification
 - Areas for improvement
